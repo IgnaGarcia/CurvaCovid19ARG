@@ -166,7 +166,6 @@ g2
 
 #Casos Semanales 
 g3 <- ggplot(XSEMANA_COVID_19 ,aes(x = semana, y = fi) ) +
-  geom_line(color="blue") +
   geom_segment(size = 0.08, aes(xend = semana, yend=0)) +
   ggtitle("COVID_19 - Casos Semanales en Argentina") +
   theme(plot.title = element_text(lineheight = 1,face ='bold'))   +
@@ -176,9 +175,10 @@ g3 <- ggplot(XSEMANA_COVID_19 ,aes(x = semana, y = fi) ) +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   theme(axis.text.y = element_text(angle = 45, hjust = 1)) +
-  geom_point(size= .1)
+  geom_point(size= .1) +
+  geom_line(color="green") 
 
-g3 <- ggplotly(g3, tooltip = c("casos")) %>%
+g3 <- ggplotly(g3, tooltip = c("fi")) %>%
   layout(legend = list(
     orientation = "h",
     x = 0.7,
