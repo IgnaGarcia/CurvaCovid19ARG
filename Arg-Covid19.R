@@ -120,67 +120,78 @@ write.csv2(XSEMANA_COVID_19, "datos_XSemana_ARG.csv",  row.names = FALSE, fileEn
 ############## genero  figura dinamica
 
 #Casos Diarios
-g1 <- ggplot(ARG_COVID_19 ,aes(x = fecha , y = fi) ) + 
-  geom_line(color="orange") +
-  ggtitle("COVID-19 - Casos Diarios en Argentina") +
-  theme(plot.title = element_text(lineheight = 1,face ='bold'))   +
-  ylab("Casos diarios") +
-  xlab("") +
-  labs(caption = "\nFuente: The Johns Hopkins University Center for Systems Science and Engineering (JHU CSSE)") +
-  theme_minimal() +
-  theme(axis.text.y = element_text(angle = 45, hjust = 1)) +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  geom_point(size= .1) #+
-  #geom_text(aes(label = round(fi,0)), position = position_stack(vjust = 1), check_overlap = TRUE)
-
-g1 <- ggplotly(g1, tooltip = c("casos")) %>%
-  layout(legend = list(
-    orientation = "h",
-    x = 0.7,
-    y = 0))
-g1
-
-
+xdia <- plot_ly(
+  type = "scatter",
+  x = ARG_COVID_19$fecha, 
+  y = ARG_COVID_19$fi,
+  name = 'Casos Diarios',
+  mode= "lines"
+)
+xdia <- xdia %>%
+  layout(
+    title = "COVID-19 Casos Diarios Argentina",
+    labs(caption = "\nFuente: The Johns Hopkins University Center for Systems Science and Engineering (JHU CSSE)"),
+    xaxis = list(
+      title= "Dia",
+      type = "date",
+      tick0 = min(ARG_COVID_19$fecha),
+      tickformat = '%d/%m'
+    ),
+    yaxis = list(
+      title= "Casos",
+      tick0 = 0, 
+      dtick = 500
+    )
+  )
+xdia
 
 #Casos Mensuales 
-g2 <- ggplot(XMES_COVID_19 ,aes(x = mes , y = fi) ) +
-  geom_line(color="red") +
-  geom_segment(size = 0.08, aes(xend = mes, yend=0)) +
-  ggtitle("COVID_19 - Casos Mensuales en Argentina") +
-  theme(plot.title = element_text(lineheight = 1,face ='bold'))   +
-  ylab("Casos Mensuales") +
-  xlab("") +
-  labs(caption = "\nFuente: The Johns Hopkins University Center for Systems Science and Engineering (JHU CSSE)") +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  theme(axis.text.y = element_text(angle = 45, hjust = 1)) +
-  geom_point(size= .1) +
-  geom_text(aes(label = round(fi,1)), position = position_stack(vjust = 1))
+xmes <- plot_ly(
+  type = "scatter",
+  x = XMES_COVID_19$mes, 
+  y = XMES_COVID_19$fi,
+  name = 'Casos Mensuales',
+  mode= "lines+markers"
+)
+xmes <- xmes %>%
+  layout(
+    title = "COVID-19 Casos Mensuales Argentina",
+    xaxis = list(
+      title= "Mes",
+      type = "month",
+      tick0 = min(XMES_COVID_19$mes), 
+      dtick = 1 
+    ),
+    yaxis = list(
+      title= "Casos",
+      tick0 = 0, 
+      dtick = 10000
+    )
+  )
+xmes
 
-g2 <- ggplotly(g2, tooltip = c("casos")) %>%
-  layout(legend = list(
-    orientation = "h",
-    x = 0.7,
-    y = 0))
-g2
 
 #Casos Semanales 
-g3 <- ggplot(XSEMANA_COVID_19 ,aes(x = semana, y = fi) ) +
-  geom_segment(size = 0.08, aes(xend = semana, yend=0)) +
-  ggtitle("COVID_19 - Casos Semanales en Argentina") +
-  theme(plot.title = element_text(lineheight = 1,face ='bold'))   +
-  ylab("Casos Semanales") +
-  xlab("") +
-  labs(caption = "\nFuente: The Johns Hopkins University Center for Systems Science and Engineering (JHU CSSE)") +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  theme(axis.text.y = element_text(angle = 45, hjust = 1)) +
-  geom_point(size= .1) +
-  geom_line(color="green") 
-
-g3 <- ggplotly(g3, tooltip = c("fi")) %>%
-  layout(legend = list(
-    orientation = "h",
-    x = 0.7,
-    y = 0))
-g3
+xsemana <- plot_ly(
+  type = "scatter",
+  x = strtoi(XSEMANA_COVID_19$semana)-9, 
+  y = XSEMANA_COVID_19$fi,
+  name = 'Casos Semanales',
+  mode= "lines+markers"
+)
+xsemana <- xsemana %>%
+  layout(
+    title = "COVID-19 Casos Semanales Argentina",
+    xaxis = list(
+      title= "Semana",
+      type = "number",
+      tick0 = min(XSEMANA_COVID_19$semana), 
+      dtick = 3 
+    ),
+    yaxis = list(
+      title= "Casos",
+      tick0 = min(XSEMANA_COVID_19$fi), 
+      dtick = 5000
+    )
+  )
+xsemana
