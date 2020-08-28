@@ -66,26 +66,36 @@ ARG_COVID_19$fr <- 0
 ARG_COVID_19$frPorcent <- 0
 ARG_COVID_19$Acum_fr <- 0
 ARG_COVID_19$Acum_frPorcent <- 0
+ARG_COVID_19$factor <- 1
+
 
 options(scipen = 6) #para evitar notacion cientifica
 options(digits=4)
 
-maxValor <- max(ARG_COVID_19$Acum_fi)#maximo valor para dividir luego
-
-#iteracion para los fi, fr, y demas
+#Contador y tope
 i <- 1
-
-for (caso in ARG_COVID_19$Acum_fi) {
-  if(caso>0){
+max <- nrow(ARG_COVID_19)
+maxValor <- max(ARG_COVID_19$Acum_fi)
+#Recorrer y calcular casos diarios de cada 10.000 habitantes
+while (i<=max) {
+  if(ARG_COVID_19$Acum_fi[i] > 0){
     ARG_COVID_19$fi[i] <- ARG_COVID_19$Acum_fi[i] - ARG_COVID_19$Acum_fi[i-1]
     ARG_COVID_19$fr[i] <- round(ARG_COVID_19$fi[i] / maxValor, 4)
     ARG_COVID_19$frPorcent[i] <- ARG_COVID_19$fr[i] * 100
+    if(ARG_COVID_19$fr[i-1] > 0) ARG_COVID_19$factor[i-1] <- ARG_COVID_19$Acum_fi[i] / ARG_COVID_19$Acum_fi[i-1]
   }
   ARG_COVID_19$Acum_fr[i] <- round(ARG_COVID_19$Acum_fi[i] / maxValor, 4)
   ARG_COVID_19$Acum_frPorcent[i] <- round(ARG_COVID_19$Acum_fr[i] * 100, 4)
   i <- i+1
 }
 
+proyeccion <- sqldf("SELECT fecha, fi, Acum_fi, factor FROM ARG_COVID_19 ORDER BY fecha desc LIMIT 1 ")
+proyeccion$factor <- 1.027294
+j <- 2
+while(j<31){
+  proyeccion[j,] <- list((proyeccion$fecha[j-1]+1), (proyeccion$fi[j-1]*1.027294), (proyeccion$Acum_fi[j-1]*1.027294), 1.027294)
+  j <- j+1
+}
 #####nuevas tablas con datos agrupados por mes y por semana
 
 ## agrupamiento por mes
@@ -116,6 +126,7 @@ XSEMANA_COVID_19 <- sqldf( "select semana,
 write.csv2(ARG_COVID_19, "datos_XDia_ARG.csv",  row.names = FALSE, fileEncoding = "UTF-8")
 write.csv2(XMES_COVID_19, "datos_XMes_ARG.csv",  row.names = FALSE, fileEncoding = "UTF-8")
 write.csv2(XSEMANA_COVID_19, "datos_XSemana_ARG.csv",  row.names = FALSE, fileEncoding = "UTF-8")
+write.csv2(proyeccion, "datos_ProyeccionCasos_ARG.csv",  row.names = FALSE, fileEncoding = "UTF-8")
 
 ############## genero  figura dinamica
 
@@ -195,3 +206,35 @@ xsemana <- xsemana %>%
     )
   )
 xsemana
+
+#Casos Acum
+fig1 <- plot_ly(data = ARG_COVID_19,  x = ~fecha, y = ~Acum_fi, name = "Casos Totales",
+                 type = 'scatter', mode = 'lines') %>%
+  layout(title = "Casos Acumulados ARG",
+         xaxis = list(title = "Fecha", type = "date",
+                      tickmode = "linear", tickformat = "%d/%m", dtick = 86400*10000,
+                      tickangle = 75),
+         yaxis = list (title = "Casos Acumulados", tickangle = -45))
+fig1
+
+#PROYECCION DE CASOS
+fig10 <- plot_ly(data = proyeccion,  x = ~fecha, y = ~Acum_fi, name = "Proyeccion",
+                 type = 'scatter', mode = 'lines') %>%
+  add_trace(x = ~ARG_COVID_19$fecha, y = ~ARG_COVID_19$Acum_fi, name = 'Actualidad', mode = 'lines') %>%
+  layout(title = "Proyeccion de contagiados con factor de aumento= 1.027294",
+         xaxis = list(title = "Fecha", type = "date",
+                      tickmode = "linear", tickformat = "%d/%m", dtick = 86400*10000,
+                      tickangle = 75),
+         yaxis = list (title = "Casos Acumulados", tickangle = -45))
+fig10
+
+#PROYECCION DE CASOS Diarios
+fig11 <- plot_ly(data = proyeccion,  x = ~fecha, y = ~fi, name = "Proyeccion",
+                 type = 'scatter', mode = 'lines') %>%
+  add_trace(x = ~ARG_COVID_19$fecha, y = ~ARG_COVID_19$fi, name = 'Actualidad', mode = 'lines') %>%
+  layout(title = "Proyeccion de contagiados con factor de aumento= 1.027294",
+         xaxis = list(title = "Fecha", type = "date",
+                      tickmode = "linear", tickformat = "%d/%m", dtick = 86400*10000,
+                      tickangle = 75),
+         yaxis = list (title = "Casos Acumulados", tickangle = -45))
+fig11
